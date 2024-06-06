@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	kfklib "github.com/opensourceways/kafka-lib/agent"
 
 	"github.com/opensourceways/community-robot-lib/config"
 	framework "github.com/opensourceways/community-robot-lib/robot-gitee-framework"
@@ -9,27 +11,13 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const botName = "welcome"
+const botName = "message-collect"
 
-const welcomeMessage = `Hey ***@%s***, Welcome to %s Community.
-All of the projects in %s Community are maintained by ***@%s***.
-That means the developers can comment below every pull request or issue to trigger Bot Commands.
-Please follow instructions at **[Here](%s)** to find the details.
-`
-
-type iClient interface {
-	CreatePRComment(owner, repo string, number int32, comment string) error
-	CreateIssueComment(owner, repo string, number string, comment string) error
-	GetBot() (sdk.User, error)
+func newRobot() *robot {
+	return &robot{}
 }
 
-func newRobot(cli iClient) *robot {
-	return &robot{cli: cli}
-}
-
-type robot struct {
-	cli iClient
-}
+type robot struct{}
 
 func (bot *robot) NewConfig() config.Config {
 	return &configuration{}
@@ -50,52 +38,28 @@ func (bot *robot) getConfig(cfg config.Config, org, repo string) (*botConfig, er
 func (bot *robot) RegisterEventHandler(p framework.HandlerRegitster) {
 	p.RegisterIssueHandler(bot.handleIssueEvent)
 	p.RegisterPullRequestHandler(bot.handlePREvent)
+	p.RegisterNoteEventHandler(bot.handleNoteEvent)
+	p.RegisterPushEventHandler(bot.handlePushEvent)
+}
+func (bot *robot) handlePREvent(e *sdk.PullRequestEvent, c config.Config, log *logrus.Entry) error {
+	body, _ := json.Marshal(e)
+	log.Info("handle pr event,send kafka message_collect_pr")
+	return kfklib.Publish("message_collect_pr", nil, body)
+}
+func (bot *robot) handleNoteEvent(e *sdk.NoteEvent, c config.Config, log *logrus.Entry) error {
+	body, _ := json.Marshal(e)
+	log.Info("handle note event,send kafka message_collect_note")
+	return kfklib.Publish("message_collect_note", nil, body)
 }
 
-func (bot *robot) handlePREvent(e *sdk.PullRequestEvent, c config.Config, log *logrus.Entry) error {
-	if sdk.GetPullRequestAction(e) != sdk.ActionOpen {
-		return nil
-	}
-
-	org, repo := e.GetOrgRepo()
-	cfg, err := bot.getConfig(c, org, repo)
-	if err != nil {
-		return err
-	}
-
-	comment, err := bot.genWelcomeMessage(e.GetPRAuthor(), cfg)
-	if err != nil {
-		return err
-	}
-
-	return bot.cli.CreatePRComment(org, repo, e.GetPRNumber(), comment)
+func (bot *robot) handlePushEvent(e *sdk.PushEvent, c config.Config, log *logrus.Entry) error {
+	body, _ := json.Marshal(e)
+	log.Info("handle push event,send kafka message_collect_push")
+	return kfklib.Publish("message_collect_push", nil, body)
 }
 
 func (bot *robot) handleIssueEvent(e *sdk.IssueEvent, c config.Config, log *logrus.Entry) error {
-	if sdk.ActionOpen != e.GetAction() {
-		return nil
-	}
-
-	org, repo := e.GetOrgRepo()
-	cfg, err := bot.getConfig(c, org, repo)
-	if err != nil {
-		return err
-	}
-
-	author := e.GetIssueAuthor()
-	comment, err := bot.genWelcomeMessage(author, cfg)
-	if err != nil {
-		return err
-	}
-
-	return bot.cli.CreateIssueComment(org, repo, e.GetIssueNumber(), comment)
-}
-
-func (bot robot) genWelcomeMessage(author string, cfg *botConfig) (string, error) {
-	b, err := bot.cli.GetBot()
-	if err != nil {
-		return "", err
-	}
-
-	return fmt.Sprintf(welcomeMessage, author, cfg.CommunityName, cfg.CommunityName, b.Login, cfg.CommandLink), nil
+	body, _ := json.Marshal(e)
+	log.Info("handle issue event,send kafka message_collect_issue")
+	return kfklib.Publish("message_collect_issue", nil, body)
 }
