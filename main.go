@@ -39,6 +39,7 @@ func main() {
 	if err := o.Validate(); err != nil {
 		logrus.WithError(err).Fatal("Invalid options")
 	}
+
 	cfg := Init()
 	if err := kafka.Init(&cfg.Kafka, log, false); err != nil {
 		logrus.Errorf("init kafka failed, err:%s", err.Error())

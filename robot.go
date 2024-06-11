@@ -11,7 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const botName = "message-collect"
+const botName = "message-collect-githook"
 
 func newRobot() *robot {
 	return &robot{}
