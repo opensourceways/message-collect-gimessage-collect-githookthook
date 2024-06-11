@@ -43,23 +43,23 @@ func (bot *robot) RegisterEventHandler(p framework.HandlerRegitster) {
 }
 func (bot *robot) handlePREvent(e *sdk.PullRequestEvent, c config.Config, log *logrus.Entry) error {
 	body, _ := json.Marshal(e)
-	log.Info("handle pr event,send kafka git_pr_raw")
-	return kfklib.Publish("git_pr_raw", nil, body)
+	log.Info("handle pr event,send kafka gitee_pr_raw")
+	return kfklib.Publish("gitee_pr_raw", nil, body)
 }
 func (bot *robot) handleNoteEvent(e *sdk.NoteEvent, c config.Config, log *logrus.Entry) error {
 	body, _ := json.Marshal(e)
-	log.Info("handle note event,send kafka git_note_raw")
-	return kfklib.Publish("git_note_raw", nil, body)
+	log.Info("handle note event,send kafka gitee_note_raw")
+	return kfklib.Publish("gitee_note_raw", nil, body)
 }
 
 func (bot *robot) handlePushEvent(e *sdk.PushEvent, c config.Config, log *logrus.Entry) error {
 	body, _ := json.Marshal(e)
-	log.Info("handle push event,send kafka git_push_raw")
-	return kfklib.Publish("git_push_raw", nil, body)
+	log.Info("handle push event,send kafka gitee_push_raw")
+	return kfklib.Publish("gitee_push_raw", nil, body)
 }
 
 func (bot *robot) handleIssueEvent(e *sdk.IssueEvent, c config.Config, log *logrus.Entry) error {
 	body, _ := json.Marshal(e)
-	log.Info("handle issue event,send kafka git_issue_raw")
-	return kfklib.Publish("git_issue_raw", nil, body)
+	log.Info("handle issue event,send kafka gitee_issue_raw")
+	return kfklib.Publish("gitee_issue_raw", nil, body)
 }
