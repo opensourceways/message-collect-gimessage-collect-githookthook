@@ -1,14 +1,15 @@
-FROM openeuler/openeuler:23.03 as BUILDER
-RUN dnf update -y && \
-    dnf install -y golang && \
-    go env -w GOPROXY=https://goproxy.cn,direct
+FROM golang:latest as BUILDER
 
 MAINTAINER shishupei
+
+ARG USER
+ARG PASS
+RUN echo "machine github.com login $USER password $PASS" >/root/.netrc
 
 # build binary
 WORKDIR /go/src/github.com/opensourceways/message-collect-githook
 COPY . .
-RUN GO111MODULE=on CGO_ENABLED=0 go build -a -o message-collect-githook -buildmode=pie --ldflags "-s -linkmode 'external' -extldflags '-Wl,-z,now'" .
+RUN GO111MODULE=on CGO_ENABLED=0 go build -a -o message-collect-githook -buildmode=pie --ldflags "-s -extldflags '-Wl,-z,now'" .
 
 # copy binary config and utils
 FROM openeuler/openeuler:22.03
