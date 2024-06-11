@@ -1,10 +1,8 @@
 package main
 
 import (
-	"flag"
 	"github.com/opensourceways/community-robot-lib/logrusutil"
 	liboptions "github.com/opensourceways/community-robot-lib/options"
-	framework "github.com/opensourceways/community-robot-lib/robot-gitee-framework"
 	"github.com/opensourceways/message-collect-githook/config"
 	"github.com/opensourceways/message-collect-githook/kafka"
 	"github.com/opensourceways/server-common-lib/utils"
@@ -25,17 +23,15 @@ func (o *options) Validate() error {
 	return o.gitee.Validate()
 }
 
-func gatherOptions(fs *flag.FlagSet, args ...string) options {
+func gatherOptions() options {
 	var o options
-	o.service.AddFlags(fs)
-	fs.Parse(args)
 	return o
 }
 
 func main() {
-	logrusutil.ComponentInit(botName)
+	logrusutil.ComponentInit("botName")
 	log := logrus.NewEntry(logrus.StandardLogger())
-	o := gatherOptions(flag.NewFlagSet(os.Args[0], flag.ExitOnError), os.Args[1:]...)
+	o := gatherOptions()
 	if err := o.Validate(); err != nil {
 		logrus.WithError(err).Fatal("Invalid options")
 	}
@@ -44,19 +40,16 @@ func main() {
 		logrus.Errorf("init kafka failed, err:%s", err.Error())
 		return
 	}
-	p := newRobot()
-
-	framework.Run(p, o.service)
+	logrus.Println("init kafka success")
+	//p := newRobot()
+	//
+	//framework.Run(p, o.service)
 }
 
 func Init() *config.Config {
-	o := gatherOptions(
-		flag.NewFlagSet(os.Args[0], flag.ExitOnError),
-		os.Args[1:]...,
-	)
 	cfg := new(config.Config)
 	logrus.Info(os.Args[1:])
-	if err := utils.LoadFromYaml(o.service.ConfigFile, cfg); err != nil {
+	if err := utils.LoadFromYaml("config/conf.yaml", cfg); err != nil {
 		logrus.Error("Config初始化失败, err:", err)
 		return nil
 	}
