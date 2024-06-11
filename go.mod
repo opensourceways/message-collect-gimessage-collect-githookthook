@@ -2,8 +2,6 @@ module github.com/opensourceways/message-collect-githook
 
 go 1.21
 
-toolchain go1.22.2
-
 require (
 	github.com/opensourceways/community-robot-lib v0.0.0-20220118064921-28924d0a1246
 	github.com/opensourceways/go-gitee v0.0.0-20220714075315-cb246f1dfb96
