@@ -1,44 +1,37 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
-	"net/http"
+	"time"
 )
 
 func main() {
 	r := gin.Default()
 
-	// 创建一个中间件用于打印请求体
-	r.Use(func(c *gin.Context) {
-		// 读取请求体
-		bodyBytes, err := ioutil.ReadAll(c.Request.Body)
-		if err != nil {
-			c.AbortWithStatus(http.StatusInternalServerError)
-			return
-		}
-		// 打印请求体
-		fmt.Println(string(bodyBytes))
-
-		// 把读取过的请求体重新赋值给 c.Request.Body 以便后续处理
-		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
-
-		// 继续处理请求
-		c.Next()
-	})
-
-	// 处理 POST 请求
 	r.POST("/gitee-hook", func(c *gin.Context) {
-		var jsonData map[string]interface{}
-		if err := c.ShouldBindJSON(&jsonData); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		// 打印请求头部
+		fmt.Println("收到请求，打印header:" + time.Now().String())
+		headers := c.Request.Header
+		for key, values := range headers {
+			for _, value := range values {
+				fmt.Printf("Header: %s = %s\n", key, value)
+			}
+		}
+		fmt.Println("收到请求，打印body" + time.Now().String())
+
+		// 读取并打印请求主体
+		body, err := ioutil.ReadAll(c.Request.Body)
+		if err != nil {
+			c.String(500, "Failed to read request body")
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{"message": "Request received"})
+		fmt.Printf("Body: %s\n", string(body))
+
+		// 返回成功响应
+		c.String(200, "Headers and body printed to console")
 	})
 
-	// 启动服务并监听 8080 端口
-	r.Run(":8888")
+	r.Run(":8888") // 监听并在 0.0.0.0:8080 上启动服务
 }
