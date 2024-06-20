@@ -40,7 +40,7 @@ func main() {
 		logrus.WithError(err).Fatal("Invalid options")
 	}
 
-	cfg := Init()
+	cfg := Init(o)
 	if err := kafka.Init(&cfg.Kafka, log, false); err != nil {
 		logrus.Errorf("init kafka failed, err:%s", err.Error())
 		return
@@ -50,11 +50,7 @@ func main() {
 	framework.Run(p, o.service)
 }
 
-func Init() *config.Config {
-	o := gatherOptions(
-		flag.NewFlagSet(os.Args[0], flag.ExitOnError),
-		os.Args[1:]...,
-	)
+func Init(o options) *config.Config {
 	cfg := new(config.Config)
 	logrus.Info(os.Args[1:])
 	if err := utils.LoadFromYaml(o.service.ConfigFile, cfg); err != nil {
