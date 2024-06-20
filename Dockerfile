@@ -2,9 +2,7 @@ FROM golang:latest as BUILDER
 LABEL maintainer="shishupei"
 
 # build binary
-ARG USER
-ARG PASS
-RUN echo "machine github.com login $USER password $PASS" >/root/.netrc
+
 RUN mkdir -p /go/src/github.com/opensourceways/message-collect-githook
 COPY . /go/src/github.com/opensourceways/message-collect-githook
 RUN cd /go/src/github.com/opensourceways/message-collect-githook && CGO_ENABLED=1 go build -v -o ./message-collect-githook main.go
