@@ -61,5 +61,9 @@ func (bot *robot) handlePushEvent(e *sdk.PushEvent, c config.Config, log *logrus
 func (bot *robot) handleIssueEvent(e *sdk.IssueEvent, c config.Config, log *logrus.Entry) error {
 	body, _ := json.Marshal(e)
 	log.Info("handle issue event,send kafka gitee_issue_raw")
-	return kfklib.Publish("gitee_issue_raw", nil, body)
+	if e.Issue.TypeName == "CVE和安全问题" {
+		return kfklib.Publish("cve_issue_raw", nil, body)
+	} else {
+		return kfklib.Publish("gitee_issue_raw", nil, body)
+	}
 }
