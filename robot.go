@@ -47,9 +47,14 @@ func (bot *robot) handlePREvent(e *sdk.PullRequestEvent, c config.Config, log *l
 	return kfklib.Publish("gitee_pr_raw", nil, body)
 }
 func (bot *robot) handleNoteEvent(e *sdk.NoteEvent, c config.Config, log *logrus.Entry) error {
+
 	body, _ := json.Marshal(e)
 	log.Info("handle note event,send kafka gitee_note_raw")
-	return kfklib.Publish("gitee_note_raw", nil, body)
+	if e.Issue != nil && e.Issue.TypeName == "CVE和安全问题" {
+		return kfklib.Publish("cve_note_raw", nil, body)
+	} else {
+		return kfklib.Publish("gitee_note_raw", nil, body)
+	}
 }
 
 func (bot *robot) handlePushEvent(e *sdk.PushEvent, c config.Config, log *logrus.Entry) error {
@@ -61,7 +66,7 @@ func (bot *robot) handlePushEvent(e *sdk.PushEvent, c config.Config, log *logrus
 func (bot *robot) handleIssueEvent(e *sdk.IssueEvent, c config.Config, log *logrus.Entry) error {
 	body, _ := json.Marshal(e)
 	log.Info("handle issue event,send kafka gitee_issue_raw")
-	if e.Issue.TypeName == "CVE和安全问题" {
+	if e.Issue != nil && e.Issue.TypeName == "CVE和安全问题" {
 		return kfklib.Publish("cve_issue_raw", nil, body)
 	} else {
 		return kfklib.Publish("gitee_issue_raw", nil, body)
