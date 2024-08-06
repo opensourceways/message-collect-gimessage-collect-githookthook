@@ -36,9 +36,9 @@ func (bot *robot) getConfig(cfg config.Config, org, repo string) (*botConfig, er
 }
 
 func (bot *robot) RegisterEventHandler(p framework.HandlerRegitster) {
-	//p.RegisterIssueHandler(bot.handleIssueEvent)
-	//p.RegisterPullRequestHandler(bot.handlePREvent)
-	//p.RegisterNoteEventHandler(bot.handleNoteEvent)
+	p.RegisterIssueHandler(bot.handleIssueEvent)
+	p.RegisterPullRequestHandler(bot.handlePREvent)
+	p.RegisterNoteEventHandler(bot.handleNoteEvent)
 	p.RegisterPushEventHandler(bot.handlePushEvent)
 }
 func (bot *robot) handlePREvent(e *sdk.PullRequestEvent, c config.Config, log *logrus.Entry) error {
