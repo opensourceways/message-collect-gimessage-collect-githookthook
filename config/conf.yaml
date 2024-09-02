@@ -1,5 +1,5 @@
 kafka:
-  address: 182.160.6.195:9094,159.138.150.4:9094,49.0.229.191:9094
+  address:
   version: 2.3.0
   mq_cert:
   user_name: kafka-test
