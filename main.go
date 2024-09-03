@@ -28,7 +28,10 @@ func (o *options) Validate() error {
 func gatherOptions(fs *flag.FlagSet, args ...string) options {
 	var o options
 	o.service.AddFlags(fs)
-	fs.Parse(args)
+	err := fs.Parse(args)
+	if err != nil {
+		return options{}
+	}
 	return o
 }
 

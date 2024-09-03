@@ -42,13 +42,18 @@ func (bot *robot) RegisterEventHandler(p framework.HandlerRegitster) {
 	p.RegisterPushEventHandler(bot.handlePushEvent)
 }
 func (bot *robot) handlePREvent(e *sdk.PullRequestEvent, c config.Config, log *logrus.Entry) error {
-	body, _ := json.Marshal(e)
+	body, err := json.Marshal(e)
+	if err != nil {
+		return err
+	}
 	log.Info("handle pr event,send kafka gitee_pr_raw")
 	return kfklib.Publish("gitee_pr_raw", nil, body)
 }
 func (bot *robot) handleNoteEvent(e *sdk.NoteEvent, c config.Config, log *logrus.Entry) error {
-
-	body, _ := json.Marshal(e)
+	body, err := json.Marshal(e)
+	if err != nil {
+		return err
+	}
 	log.Info("handle note event,send kafka gitee_note_raw")
 	if e.Issue != nil && e.Issue.TypeName == "CVE和安全问题" {
 		return kfklib.Publish("cve_note_raw", nil, body)
@@ -58,13 +63,19 @@ func (bot *robot) handleNoteEvent(e *sdk.NoteEvent, c config.Config, log *logrus
 }
 
 func (bot *robot) handlePushEvent(e *sdk.PushEvent, c config.Config, log *logrus.Entry) error {
-	body, _ := json.Marshal(e)
+	body, err := json.Marshal(e)
+	if err != nil {
+		return err
+	}
 	log.Info("handle push event,send kafka gitee_push_raw")
 	return kfklib.Publish("gitee_push_raw", nil, body)
 }
 
 func (bot *robot) handleIssueEvent(e *sdk.IssueEvent, c config.Config, log *logrus.Entry) error {
-	body, _ := json.Marshal(e)
+	body, err := json.Marshal(e)
+	if err != nil {
+		return err
+	}
 	log.Info("handle issue event,send kafka gitee_issue_raw")
 	if e.Issue != nil && e.Issue.TypeName == "CVE和安全问题" {
 		return kfklib.Publish("cve_issue_raw", nil, body)
