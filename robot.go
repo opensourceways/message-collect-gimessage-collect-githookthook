@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+
 	kfklib "github.com/opensourceways/kafka-lib/agent"
 
 	"github.com/opensourceways/community-robot-lib/config"
@@ -45,6 +46,10 @@ func (bot *robot) handlePREvent(e *sdk.PullRequestEvent, c config.Config, log *l
 	body, err := json.Marshal(e)
 	if err != nil {
 		return err
+	}
+	if *e.Action == "update" || *e.Action == "set_draft" || *e.Action == "cancel_draft" {
+		log.Info("Ignore update events and set to draft.")
+		return nil
 	}
 	log.Info("handle pr event,send kafka gitee_pr_raw")
 	return kfklib.Publish("gitee_pr_raw", nil, body)
