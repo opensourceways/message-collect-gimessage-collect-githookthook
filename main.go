@@ -2,14 +2,17 @@ package main
 
 import (
 	"flag"
+	"io/ioutil"
+	"os"
+
 	"github.com/opensourceways/community-robot-lib/logrusutil"
 	liboptions "github.com/opensourceways/community-robot-lib/options"
 	framework "github.com/opensourceways/community-robot-lib/robot-gitee-framework"
+	"github.com/sirupsen/logrus"
+	"sigs.k8s.io/yaml"
+
 	"github.com/opensourceways/message-collect-githook/config"
 	"github.com/opensourceways/message-collect-githook/kafka"
-	"github.com/opensourceways/server-common-lib/utils"
-	"github.com/sirupsen/logrus"
-	"os"
 )
 
 type options struct {
@@ -52,6 +55,16 @@ func main() {
 
 	framework.Run(p, o.service)
 }
+func LoadFromYaml(path string, cfg interface{}) error {
+	b, err := ioutil.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	content := []byte(os.ExpandEnv(string(b)))
+	logrus.Error(content)
+	return yaml.Unmarshal(content, cfg)
+}
 
 func Init() *config.Config {
 	o := gatherOptions(
@@ -60,7 +73,7 @@ func Init() *config.Config {
 	)
 	cfg := new(config.Config)
 	logrus.Info(os.Args[1:])
-	if err := utils.LoadFromYaml(o.service.ConfigFile, cfg); err != nil {
+	if err := LoadFromYaml(o.service.ConfigFile, cfg); err != nil {
 		logrus.Error("Config初始化失败, err:", err)
 		return nil
 	}
