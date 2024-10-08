@@ -62,7 +62,7 @@ func LoadFromYaml(path string, cfg interface{}) error {
 	}
 
 	content := []byte(os.ExpandEnv(string(b)))
-	logrus.Error(content)
+	logrus.Error(string(content))
 	return yaml.Unmarshal(content, cfg)
 }
 
