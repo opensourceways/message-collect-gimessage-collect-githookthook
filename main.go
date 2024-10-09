@@ -7,6 +7,7 @@ import (
 	"github.com/opensourceways/community-robot-lib/logrusutil"
 	liboptions "github.com/opensourceways/community-robot-lib/options"
 	framework "github.com/opensourceways/community-robot-lib/robot-gitee-framework"
+	"github.com/opensourceways/message-collect-githook/kafka"
 	"github.com/opensourceways/server-common-lib/utils"
 	"github.com/sirupsen/logrus"
 )
@@ -36,30 +37,24 @@ func gatherOptions(fs *flag.FlagSet, args ...string) options {
 
 func main() {
 	logrusutil.ComponentInit(botName)
+	log := logrus.NewEntry(logrus.StandardLogger())
 	o := gatherOptions(flag.NewFlagSet(os.Args[0], flag.ExitOnError), os.Args[1:]...)
 	if err := o.Validate(); err != nil {
 		logrus.WithError(err).Fatal("Invalid options")
 	}
 
-	Init()
+	cfg := Init()
+	if err := kafka.Init(&cfg.Kafka, log, false); err != nil {
+		logrus.Errorf("init kafka failed, err:%s", err.Error())
+		return
+	}
 	p := newRobot()
 
 	framework.Run(p, o.service)
 }
 
 type Config struct {
-	KafkaConfig Kafka `json:"kafka"`
-}
-
-type Kafka struct {
-	Address        string `json:"address" required:"true"`
-	Version        string `json:"version"` // e.g 2.1.0
-	MQCert         string `json:"mq_cert"`
-	OTEL           bool   `json:"otel"` // Whether otel tracing is enabled
-	Username       string `json:"user_name"`
-	Password       string `json:"password"`
-	Algorithm      string `json:"algorithm"`
-	SkipCertVerify bool   `json:"skip_cert_verify"`
+	Kafka kafka.Config `json:"kafka"`
 }
 
 func Init() *Config {
@@ -73,6 +68,6 @@ func Init() *Config {
 		logrus.Error("Config初始化失败, err:", err)
 		return nil
 	}
-	logrus.Infof("the version is %v", cfg.KafkaConfig.Version)
+	logrus.Infof("the version is %v", cfg.Kafka.Version)
 	return cfg
 }
