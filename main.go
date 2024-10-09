@@ -50,6 +50,10 @@ func main() {
 }
 
 type Config struct {
+	KafkaConfig Kafka `json:"kafka"`
+}
+
+type Kafka struct {
 	Address        string      `json:"address" required:"true"`
 	Version        interface{} `json:"version"` // e.g 2.1.0
 	MQCert         string      `json:"mq_cert"`
@@ -81,8 +85,8 @@ func Init() *Config {
 		logrus.Error("Config初始化失败, err:", err)
 		return nil
 	}
-	logrus.Infof("the version is %v", cfg.Version)
-	switch v := cfg.Version.(type) {
+	logrus.Infof("the version is %v", cfg.KafkaConfig.Version)
+	switch v := cfg.KafkaConfig.Version.(type) {
 	case string:
 		fmt.Printf("Version (string): %s\n", v)
 	case float64: // JSON 数字会被解析为 float64
