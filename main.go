@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -54,14 +53,14 @@ type Config struct {
 }
 
 type Kafka struct {
-	Address        string      `json:"address" required:"true"`
-	Version        interface{} `json:"version"` // e.g 2.1.0
-	MQCert         string      `json:"mq_cert"`
-	OTEL           bool        `json:"otel"` // Whether otel tracing is enabled
-	Username       string      `json:"user_name"`
-	Password       string      `json:"password"`
-	Algorithm      string      `json:"algorithm"`
-	SkipCertVerify bool        `json:"skip_cert_verify"`
+	Address        string `json:"address" required:"true"`
+	Version        string `json:"version"` // e.g 2.1.0
+	MQCert         string `json:"mq_cert"`
+	OTEL           bool   `json:"otel"` // Whether otel tracing is enabled
+	Username       string `json:"user_name"`
+	Password       string `json:"password"`
+	Algorithm      string `json:"algorithm"`
+	SkipCertVerify bool   `json:"skip_cert_verify"`
 }
 
 func LoadFromYaml(path string, cfg interface{}) error {
@@ -86,13 +85,5 @@ func Init() *Config {
 		return nil
 	}
 	logrus.Infof("the version is %v", cfg.KafkaConfig.Version)
-	switch v := cfg.KafkaConfig.Version.(type) {
-	case string:
-		fmt.Printf("Version (string): %s\n", v)
-	case float64: // JSON 数字会被解析为 float64
-		fmt.Printf("Version (number): %.0f\n", v)
-	default:
-		fmt.Println("Unknown version type")
-	}
 	return cfg
 }
