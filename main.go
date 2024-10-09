@@ -2,14 +2,13 @@ package main
 
 import (
 	"flag"
-	"io/ioutil"
 	"os"
 
 	"github.com/opensourceways/community-robot-lib/logrusutil"
 	liboptions "github.com/opensourceways/community-robot-lib/options"
 	framework "github.com/opensourceways/community-robot-lib/robot-gitee-framework"
+	"github.com/opensourceways/server-common-lib/utils"
 	"github.com/sirupsen/logrus"
-	"sigs.k8s.io/yaml"
 )
 
 type options struct {
@@ -63,16 +62,6 @@ type Kafka struct {
 	SkipCertVerify bool   `json:"skip_cert_verify"`
 }
 
-func LoadFromYaml(path string, cfg interface{}) error {
-	b, err := ioutil.ReadFile(path)
-	if err != nil {
-		return err
-	}
-
-	content := []byte(os.ExpandEnv(string(b)))
-	return yaml.Unmarshal(content, cfg)
-}
-
 func Init() *Config {
 	o := gatherOptions(
 		flag.NewFlagSet(os.Args[0], flag.ExitOnError),
@@ -80,7 +69,7 @@ func Init() *Config {
 	)
 	cfg := new(Config)
 	logrus.Info(os.Args[1:])
-	if err := LoadFromYaml(o.service.ConfigFile, cfg); err != nil {
+	if err := utils.LoadFromYaml(o.service.ConfigFile, cfg); err != nil {
 		logrus.Error("Config初始化失败, err:", err)
 		return nil
 	}
