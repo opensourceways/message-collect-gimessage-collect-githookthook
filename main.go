@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -10,9 +11,6 @@ import (
 	framework "github.com/opensourceways/community-robot-lib/robot-gitee-framework"
 	"github.com/sirupsen/logrus"
 	"sigs.k8s.io/yaml"
-
-	"github.com/opensourceways/message-collect-githook/config"
-	"github.com/opensourceways/message-collect-githook/kafka"
 )
 
 type options struct {
@@ -40,21 +38,28 @@ func gatherOptions(fs *flag.FlagSet, args ...string) options {
 
 func main() {
 	logrusutil.ComponentInit(botName)
-	log := logrus.NewEntry(logrus.StandardLogger())
 	o := gatherOptions(flag.NewFlagSet(os.Args[0], flag.ExitOnError), os.Args[1:]...)
 	if err := o.Validate(); err != nil {
 		logrus.WithError(err).Fatal("Invalid options")
 	}
 
-	cfg := Init()
-	if err := kafka.Init(&cfg.Kafka, log, false); err != nil {
-		logrus.Errorf("init kafka failed, err:%s", err.Error())
-		return
-	}
+	Init()
 	p := newRobot()
 
 	framework.Run(p, o.service)
 }
+
+type Config struct {
+	Address        string      `json:"address" required:"true"`
+	Version        interface{} `json:"version"` // e.g 2.1.0
+	MQCert         string      `json:"mq_cert"`
+	OTEL           bool        `json:"otel"` // Whether otel tracing is enabled
+	Username       string      `json:"user_name"`
+	Password       string      `json:"password"`
+	Algorithm      string      `json:"algorithm"`
+	SkipCertVerify bool        `json:"skip_cert_verify"`
+}
+
 func LoadFromYaml(path string, cfg interface{}) error {
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -62,20 +67,28 @@ func LoadFromYaml(path string, cfg interface{}) error {
 	}
 
 	content := []byte(os.ExpandEnv(string(b)))
-	logrus.Error(string(content))
 	return yaml.Unmarshal(content, cfg)
 }
 
-func Init() *config.Config {
+func Init() *Config {
 	o := gatherOptions(
 		flag.NewFlagSet(os.Args[0], flag.ExitOnError),
 		os.Args[1:]...,
 	)
-	cfg := new(config.Config)
+	cfg := new(Config)
 	logrus.Info(os.Args[1:])
 	if err := LoadFromYaml(o.service.ConfigFile, cfg); err != nil {
 		logrus.Error("Config初始化失败, err:", err)
 		return nil
+	}
+	logrus.Infof("the version is %v", cfg.Version)
+	switch v := cfg.Version.(type) {
+	case string:
+		fmt.Printf("Version (string): %s\n", v)
+	case float64: // JSON 数字会被解析为 float64
+		fmt.Printf("Version (number): %.0f\n", v)
+	default:
+		fmt.Println("Unknown version type")
 	}
 	return cfg
 }
